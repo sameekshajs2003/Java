@@ -1,0 +1,83 @@
+USE exam;
+-- Table structure for table `Students`
+CREATE TABLE IF NOT EXISTS `Students` (
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `srn` VARCHAR(255) NOT NULL,
+    `username` VARCHAR(255) NOT NULL,
+    `password` VARCHAR(255) NOT NULL,
+    `dept` VARCHAR(255) NOT NULL,
+    `sem` VARCHAR(255) NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `srn_UNIQUE` (`srn`) -- Add unique constraint on srn
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table structure for table `Teachers`
+CREATE TABLE IF NOT EXISTS `Teachers` (
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `irn` VARCHAR(255) NOT NULL,
+    `username` VARCHAR(255) NOT NULL,
+    `password` VARCHAR(255) NOT NULL,
+    `depti` VARCHAR(255) NOT NULL,
+    `sub` VARCHAR(255) NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `irn_UNIQUE` (`irn`) -- Add unique constraint on irn
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table structure for table `Classgroup`
+CREATE TABLE IF NOT EXISTS `Classgroup` (
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `group_name` VARCHAR(255) NOT NULL,
+    `instructor_id` VARCHAR(255)  NOT NULL, -- Add instructor_id column
+    PRIMARY KEY (`id`),
+    CONSTRAINT `fk_classgroup_instructor` FOREIGN KEY (`instructor_id`) REFERENCES `Teachers` (`irn`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Table structure for table `GroupStudents`
+CREATE TABLE IF NOT EXISTS `GroupStudents` (
+    `group_id` INT NOT NULL,
+    `student_srn` VARCHAR(255) NOT NULL,  -- Use student SRN instead of student_id
+    PRIMARY KEY (`group_id`, `student_srn`),
+    CONSTRAINT `fk_groupstudents_group` FOREIGN KEY (`group_id`) REFERENCES `Classgroup` (`id`),
+    CONSTRAINT `fk_groupstudents_student` FOREIGN KEY (`student_srn`) REFERENCES `Students` (`srn`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `Exams` (
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `subject` VARCHAR(255) NOT NULL,
+    `type` VARCHAR(255) NOT NULL,
+    `date_scheduled` DATE NOT NULL,
+    `duration` INT NOT NULL,
+    `total_marks` INT NOT NULL,
+    `groupname` VARCHAR(255) NOT NULL,
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS `RegisteredExams` (
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `exam_name` VARCHAR(255) NOT NULL,
+    `exam_date` DATE NOT NULL,
+    `student_srn` VARCHAR(255) NOT NULL,
+    PRIMARY KEY (`id`),
+    CONSTRAINT `fk_registeredexams_student` FOREIGN KEY (`student_srn`) REFERENCES `Students` (`srn`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS ExamResults (
+    id INT NOT NULL AUTO_INCREMENT,
+    student_srn VARCHAR(255) NOT NULL,
+    exam_subject VARCHAR(255) NOT NULL,
+    exam_type VARCHAR(255) NOT NULL,
+    exam_date DATE NOT NULL,
+    marks INT NOT NULL,
+    review VARCHAR(1000),
+    group_name VARCHAR(20),
+    PRIMARY KEY (id),
+    CONSTRAINT fk_examresults_student FOREIGN KEY (student_srn) REFERENCES Students (srn)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+ALTER TABLE Exams
+MODIFY COLUMN date_scheduled VARCHAR(20); -- Change VARCHAR(20) to your desired length
+ALTER TABLE RegisteredExams
+MODIFY COLUMN exam_date VARCHAR(20); -- Change VARCHAR(20) to your desired length
+ALTER TABLE ExamResults
+MODIFY COLUMN exam_date VARCHAR(20); 
+ALTER TABLE `GroupStudents` DROP FOREIGN KEY `fk_groupstudents_group`;
+
+ALTER TABLE `GroupStudents`  -- Drop the existing foreign key constraint
+ADD CONSTRAINT `fk_groupstudents_group` FOREIGN KEY (`group_id`) REFERENCES `Classgroup` (`id`) ON DELETE CASCADE; -- Add the modified constraint
